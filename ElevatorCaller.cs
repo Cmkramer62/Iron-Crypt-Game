@@ -38,10 +38,6 @@ public class ElevatorCaller : MonoBehaviour {
         }
     }
 
-    private void Update()
-    {
-    }
-
     #region -------------------BUTTON PRESS-----------------------
 
     public void HailElevatorButton() {
