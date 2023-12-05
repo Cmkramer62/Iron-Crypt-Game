@@ -63,6 +63,23 @@ public class LineOfSightChecker : MonoBehaviour
         return false;
     }
 
+    private bool IsPlayerInLineOfSight2(Transform targetFOV)
+    {
+        RaycastHit hit;
+        Vector3 bob = new Vector3(targetFOV.position.x, targetFOV.position.y + 1, targetFOV.position.z);
+        Vector3 monEyeLevel = new Vector3(monster.position.x, monster.position.y + 3, monster.position.z);
+        Vector3 directionToPlayer = bob - monEyeLevel;
+
+        if (Physics.Raycast(monEyeLevel, directionToPlayer, out hit))
+        {
+            if (hit.transform.name.Equals(targetFOV.name) || hit.transform.name.Equals("CabinetDoorL") || hit.transform.name.Equals("CabinetDoorR"))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /*
      * IsPlayerInViewDistance() checks if the player is within a certain range of the monster.
      * Returns true if this is the case.
@@ -77,6 +94,6 @@ public class LineOfSightChecker : MonoBehaviour
      * Returns true if all conditions are met.
      */
     public bool CanSeeTarget(Transform target) {
-        return (IsPlayerInViewDistance() && IsPlayerInFieldOfView() && IsPlayerInLineOfSight(target));
+        return (IsPlayerInViewDistance() && IsPlayerInFieldOfView() && IsPlayerInLineOfSight2(target));
     }
 }

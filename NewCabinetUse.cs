@@ -53,11 +53,11 @@ public class NewCabinetUse : MonoBehaviour {
 
     private IEnumerator AnimationTimeAmbush() {
         yield return new WaitForSeconds(1f);
-        if (playerInside && GameObject.FindWithTag("Crawler").GetComponent<LineOfSightChecker>().CanSeeTarget(gameObject.transform)) {
-            GameObject.FindWithTag("Crawler").GetComponent<CrawlerController>().waitTarget = waitTransform.transform;
-            GameObject.FindWithTag("Crawler").GetComponent<CrawlerController>().RandomAmbush(1);
+        GameObject crawler = GameObject.FindWithTag("Crawler");
+        if (playerInside && crawler.GetComponent<LineOfSightChecker>().CanSeeTarget(gameObject.transform)) {
+            crawler.GetComponent<CrawlerController>().waitTarget = waitTransform.transform;
+            crawler.GetComponent<CrawlerController>().RandomAmbush(crawler.GetComponent<CrawlerController>().ambushChance);
         }
-
     }
 
 }

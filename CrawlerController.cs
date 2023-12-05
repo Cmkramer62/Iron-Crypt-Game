@@ -13,11 +13,13 @@ public class CrawlerController : MonoBehaviour {
     public Animator crawlAnimator;
     public bool ambushing = false;
     public Transform waitTarget;
+    public int ambushChance = 1; // 1=garunteed, 2=50%, etc.
     #endregion
 
     #region Audio Vars
-    public AudioSource chaseMusic, footstepSource;
-    public AudioClip walkingClip, runningClip, jumpscareClip;
+    public AudioSource chaseMusic;
+    private AudioSource footstepSource;
+    public AudioClip walkingClip, runningClip, jumpscareClip, breathClip;
     public bool canPlayMusic = true;
     #endregion
 
@@ -31,6 +33,7 @@ public class CrawlerController : MonoBehaviour {
     private float initSpeed;
     private Coroutine temp;
     private float punish = 0;
+    private bool overrideSound = false;
     #endregion
 
     void Start() {
@@ -57,7 +60,7 @@ public class CrawlerController : MonoBehaviour {
         #endregion
 
         #region VOLUME CONTROL
-        if (agent.velocity == new Vector3 (0,0,0)) footstepSource.volume = 0;
+        if (agent.velocity == new Vector3 (0,0,0) || overrideSound) footstepSource.volume = 0;
         else if(hunting && !ambushing) footstepSource.volume = 1;
         else if(!hunting && !ambushing) footstepSource.volume = .1f;
         #endregion
@@ -91,12 +94,13 @@ public class CrawlerController : MonoBehaviour {
         ambushing = true;
         gameObject.GetComponent<monRanSound>().allowed = false;
         crawlAnimator.Play("Sniff");
-        footstepSource.volume = 0f;
-
-        //wait for time between 5-13 seconds.
+        overrideSound = true;
         yield return new WaitForSeconds(Random.Range(5,45));
         ambushing = false;
-        StopHunt();
+        StopHunt(true);
+        yield return new WaitForSeconds(4f); //2.65 limit for personal hearing.
+        overrideSound = false;
+        //footstepSource.volume = .1f;
     }
 
     public void StopAmbush() {
@@ -113,7 +117,7 @@ public class CrawlerController : MonoBehaviour {
         ambushing = false;
         crawlAnimator.Play("Running Crawl");
         footstepSource.clip = runningClip;
-        footstepSource.volume = 1;
+        //footstepSource.volume = 1;
         footstepSource.Play();
     }
 
@@ -126,20 +130,20 @@ public class CrawlerController : MonoBehaviour {
         if(canPlayMusic) chaseMusic.Play();
         if (chaseIfSeen) crawlAnimator.Play("Running Crawl");
         footstepSource.clip = runningClip;
-        footstepSource.volume = 1;
+        //footstepSource.volume = 1;
         footstepSource.Play();
     }
 
     /*
      * StopHunt() sets the monster to patrolling values. ie. walking, slowed down, less noisy.
      */
-    public void StopHunt() {
+    public void StopHunt(bool delayed) {
         hunting = false;
         agent.speed = initSpeed;
         if (chaseIfSeen) crawlAnimator.Play("Low Crawl");
         chaseMusic.Stop();
         footstepSource.clip = walkingClip;
-        footstepSource.volume = .1f;
+        //if(!delayed) footstepSource.volume = .1f;
         footstepSource.Play();
     }
 
@@ -158,7 +162,7 @@ public class CrawlerController : MonoBehaviour {
     IEnumerator Wait() {
         yield return new WaitForSeconds(chaseDurationSeconds);
         if (!gameObject.GetComponent<LineOfSightChecker>().playerInSight) {
-            if (!ambushing) StopHunt();
+            if (!ambushing) StopHunt(false);
             else {
                 chaseMusic.Stop();
             }
