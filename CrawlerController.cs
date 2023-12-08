@@ -12,14 +12,16 @@ public class CrawlerController : MonoBehaviour {
     NavMeshAgent agent;
     public Animator crawlAnimator;
     public bool ambushing = false;
+    [Header("Below should be empty.")]
     public Transform waitTarget;
-    public int ambushChance = 1; // 1=garunteed, 2=50%, etc.
+    public int ambushChance = 1; // 1=guarunteed, 2=50%, etc.
     #endregion
 
     #region Audio Vars
-    public AudioSource chaseMusic;
+    public AudioSource chaseMusic, voiceActingSource;
     private AudioSource footstepSource;
     public AudioClip walkingClip, runningClip, jumpscareClip, breathClip;
+    public AudioClip[] VoiceClips;
     public bool canPlayMusic = true;
     #endregion
 
@@ -162,8 +164,11 @@ public class CrawlerController : MonoBehaviour {
     IEnumerator Wait() {
         yield return new WaitForSeconds(chaseDurationSeconds);
         if (!gameObject.GetComponent<LineOfSightChecker>().playerInSight) {
-            if (!ambushing) StopHunt(false);
-            else {
+            if (!ambushing) {
+                StopHunt(false);
+                Debug.Log("played souird");
+                gameObject.GetComponentInChildren<AudioSource>().PlayOneShot(VoiceClips[Random.Range(0, VoiceClips.Length)]);
+            } else {
                 chaseMusic.Stop();
             }
         }
