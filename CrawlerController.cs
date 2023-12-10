@@ -36,6 +36,7 @@ public class CrawlerController : MonoBehaviour {
     private Coroutine temp;
     private float punish = 0;
     private bool overrideSound = false;
+    private int lastLostVAIndex, lastRoarVAIndex = 0;
     #endregion
 
     void Start() {
@@ -127,6 +128,9 @@ public class CrawlerController : MonoBehaviour {
      * HuntPlayer() initiates the audio settings for chasing the player.
      */
     public void HuntPlayer() {
+        Debug.Log("Start hunt?");
+        PlayVALostPlayer(5, 7, ref lastRoarVAIndex);
+
         hunting = true;
         agent.speed = chaseSpeed;
         if(canPlayMusic) chaseMusic.Play();
@@ -166,12 +170,29 @@ public class CrawlerController : MonoBehaviour {
         if (!gameObject.GetComponent<LineOfSightChecker>().playerInSight) {
             if (!ambushing) {
                 StopHunt(false);
-                Debug.Log("played souird");
-                gameObject.GetComponentInChildren<AudioSource>().PlayOneShot(VoiceClips[Random.Range(0, VoiceClips.Length)]);
-            } else {
+
+                yield return new WaitForSeconds(Random.Range(0f, 4.4f));
+
+                if (!hunting && !ambushing) {
+                    PlayVALostPlayer(0, 5, ref lastLostVAIndex);
+                    gameObject.GetComponent<monRanSound>().allowed = false;
+                    yield return new WaitForSeconds(5f);
+                    gameObject.GetComponent<monRanSound>().allowed = true;
+                }
+            }
+            else {
                 chaseMusic.Stop();
             }
         }
+    }
+
+    private void PlayVALostPlayer(int minIndex, int maxIndex, ref int tee) {// Change to have a range of clips, a-d is lost player, e-f is seen player, etc.
+        int temp = Random.Range(minIndex, maxIndex);
+        if (temp == minIndex && temp == tee) temp = minIndex+1;
+        else if (temp == tee) temp = minIndex;
+
+        tee = temp;
+        voiceActingSource.PlayOneShot(VoiceClips[temp]);
     }
 
 }
