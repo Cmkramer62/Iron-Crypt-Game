@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.VFX;
 
 public class Activator : MonoBehaviour {
 
@@ -23,7 +24,9 @@ public class Activator : MonoBehaviour {
 
     public bool useSFX = true;
     public bool useVFX = true;
-    //public bool state = false;
+
+    // NOTE: If the first object is anything that the Activate method cannot keep track of it's bool state (particle, light), an empty gameobject
+    // should simply be placed as the first item in the list.
 
     private IEnumerator Activate() {
         if (ableToUse && cooldownDone) {
@@ -43,17 +46,20 @@ public class Activator : MonoBehaviour {
             }
             foreach (GameObject listItem in effectee) {
                 if (listItem.CompareTag("Particle")) {
-                    if (listItem.GetComponent<ParticleSystem>().isPlaying)
-                        listItem.GetComponent<ParticleSystem>().Stop();
-                    else listItem.GetComponent<ParticleSystem>().Play();
-                }
-                else if (listItem.CompareTag("AutoDoor")) listItem.GetComponent<AutoDoor>().ShiftDoor();
+                    if (listItem.GetComponent<VisualEffect>().aliveParticleCount >= 1)//listItem.GetComponent<ParticleSystem>().isPlaying)
+                        listItem.GetComponent<VisualEffect>().Stop();
+                    else listItem.GetComponent<VisualEffect>().Play();
+                } else if (listItem.CompareTag("AutoDoor")) listItem.GetComponent<AutoDoor>().ShiftDoor();
                 else if (listItem.CompareTag("Elevator")) {
                     if (gameObject.name.Equals("Button Parent (Down)")) listItem.GetComponent<ElevatorCaller>().DownElevatorButton();
                     else if (gameObject.name.Equals("Button Parent (Up)")) listItem.GetComponent<ElevatorCaller>().UpElevatorButton();
                     else listItem.GetComponent<ElevatorCaller>().HailElevatorButton();
-                }
-                else listItem.SetActive(!listItem.activeSelf);
+                } else if (listItem.CompareTag("Light")) {
+                    if (listItem.GetComponent<LightFlicker>().alive) listItem.GetComponent<LightFlicker>().TurnOffLight(false);
+                    else listItem.GetComponent<LightFlicker>().TurnOnLight();
+                } else if (listItem.CompareTag("InteractiveObject")) { // "InteractiveObject" is the tag used specifically for Doors.
+                    listItem.GetComponent<DoorScript>().ForceUnlock();
+                } else listItem.SetActive(!listItem.activeSelf);
                 yield return new WaitForSeconds(timed);
             }
         }
