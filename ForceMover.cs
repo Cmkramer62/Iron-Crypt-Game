@@ -19,6 +19,8 @@ public class ForceMover : MonoBehaviour {
     public Transform transformPoint, lookAtPoint;
     public bool lookAtActivated = true;
 
+    public GameObject barrier;
+
     void Start() {
         player = GameObject.Find("Player Two");
         animator = gameObject.GetComponentInChildren<Animator>();
@@ -31,6 +33,7 @@ public class ForceMover : MonoBehaviour {
     }
 
     public void MoverProcedure() {
+        barrier.SetActive(false);
         PlayerNullify.ChangePlayerAbilityPerms();
         player.transform.position = transformPoint.position;
 

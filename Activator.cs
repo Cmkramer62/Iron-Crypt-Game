@@ -58,7 +58,13 @@ public class Activator : MonoBehaviour {
                     if (listItem.GetComponent<LightFlicker>().alive) listItem.GetComponent<LightFlicker>().TurnOffLight(false);
                     else listItem.GetComponent<LightFlicker>().TurnOnLight();
                 } else if (listItem.CompareTag("InteractiveObject")) { // "InteractiveObject" is the tag used specifically for Doors.
-                    listItem.GetComponent<DoorScript>().ForceUnlock();
+                    if (listItem.GetComponent<DoorScript>().doorState) {
+                        // close door
+                        listItem.GetComponent<DoorScript>().InteractWithDoor();
+                    }
+                    if (listItem.GetComponent<DoorScript>().hasUnlocked) listItem.GetComponent<DoorScript>().ForceLock();
+                    else listItem.GetComponent<DoorScript>().ForceUnlock();
+
                 } else listItem.SetActive(!listItem.activeSelf);
                 yield return new WaitForSeconds(timed);
             }
