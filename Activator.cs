@@ -25,11 +25,16 @@ public class Activator : MonoBehaviour {
     public bool useSFX = true;
     public bool useVFX = true;
 
+    public bool timerActivator;
+    public TimedActivator timedActivatorScript;
+
     // NOTE: If the first object is anything that the Activate method cannot keep track of it's bool state (particle, light), an empty gameobject
     // should simply be placed as the first item in the list.
 
-    private IEnumerator Activate() {
+    private IEnumerator Activate(bool repeat) {
         if (ableToUse && cooldownDone) {
+            if (repeat && timerActivator) timedActivatorScript.StartTimer();
+
             if (doOnce) ableToUse = false;
             else if (cooldown > 0f) StartCoroutine(CooldownTime());
 
@@ -65,6 +70,8 @@ public class Activator : MonoBehaviour {
                     if (listItem.GetComponent<DoorScript>().hasUnlocked) listItem.GetComponent<DoorScript>().ForceLock();
                     else listItem.GetComponent<DoorScript>().ForceUnlock();
 
+                } else if (listItem.CompareTag("Spewer")) {
+                    listItem.GetComponent<SpewerCycle>().SwapManually();
                 } else listItem.SetActive(!listItem.activeSelf);
                 yield return new WaitForSeconds(timed);
             }
@@ -74,18 +81,18 @@ public class Activator : MonoBehaviour {
     #region ----------------------- HELPER METHODS
 
     public void ForceActivateSwitch() {
-        StartCoroutine(Activate());
+        StartCoroutine(Activate(false));
     }
 
     public void ActivateSwitch() {
         if (manualActivation) {
-            StartCoroutine(Activate());
+            StartCoroutine(Activate(true));
         }
     }
 
     private void OnTriggerEnter(Collider other) {
         if (!manualActivation) {
-            StartCoroutine(Activate());
+            StartCoroutine(Activate(true));
         }
     }
 
