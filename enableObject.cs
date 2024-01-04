@@ -12,15 +12,16 @@ public class enableObject : MonoBehaviour {
     public bool repeat = false;
 
     private bool inside = false;
+    private bool doneTimer = false;
 
     private void Update() {
-        if (timed && inside) {
+        if (timed && !doneTimer && inside) {
             timer -= 1 * Time.deltaTime;
             if (timer <= 0) {
                 activateManually();
                // oneAndDone = true;
                 //done = true;
-                timed = false;
+                doneTimer = false;
             }
         }
     }
@@ -29,9 +30,8 @@ public class enableObject : MonoBehaviour {
         if(enterTrigger && other.CompareTag("Player")) {
             inside = true;
             if (!timed) {
+                objectToEnable.SetActive(enable);
                 if (repeat) enable = !enable;
-                objectToEnable.SetActive(!enable);
-                
             }
         }
     }
