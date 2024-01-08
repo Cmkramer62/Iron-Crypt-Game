@@ -14,6 +14,8 @@ public class enableObject : MonoBehaviour {
     private bool inside = false;
     private bool doneTimer = false;
 
+    public bool anythingActivate = false;
+
     private void Update() {
         if (timed && !doneTimer && inside) {
             timer -= 1 * Time.deltaTime;
@@ -27,7 +29,7 @@ public class enableObject : MonoBehaviour {
     }
 
     private void OnTriggerEnter(Collider other) {
-        if(enterTrigger && other.CompareTag("Player")) {
+        if((enterTrigger && other.CompareTag("Player") && !anythingActivate) || (enterTrigger && anythingActivate) ){
             inside = true;
             if (!timed) {
                 objectToEnable.SetActive(enable);
@@ -37,7 +39,7 @@ public class enableObject : MonoBehaviour {
     }
 
     private void OnTriggerExit(Collider other) {
-        inside = false;
+        if(other.CompareTag("Player") || (anythingActivate)) inside = false;
     }
 
     public void activateManually() {
