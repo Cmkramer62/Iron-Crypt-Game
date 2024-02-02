@@ -9,7 +9,8 @@ public class enableObject : MonoBehaviour {
     public bool enterTrigger = true;
     public bool timed = false;
     public float timer = 30f;
-    public bool repeat = false;
+    public bool alwaysSetOpposite = false;
+    public bool oneAndDone = false;
 
     private bool inside = false;
     private bool doneTimer = false;
@@ -32,8 +33,7 @@ public class enableObject : MonoBehaviour {
         if((enterTrigger && other.CompareTag("Player") && !anythingActivate) || (enterTrigger && anythingActivate) ){
             inside = true;
             if (!timed) {
-                objectToEnable.SetActive(enable);
-                if (repeat) enable = !enable;
+                ChangeActive();
             }
         }
     }
@@ -43,8 +43,7 @@ public class enableObject : MonoBehaviour {
     }
 
     public void activateManually() {
-        objectToEnable.SetActive(enable);
-        if (repeat) enable = !enable;
+        ChangeActive();
     }
 
     public void activateManuallyTimed() {
@@ -53,8 +52,13 @@ public class enableObject : MonoBehaviour {
 
     IEnumerator waitTimer(float duration) {
         yield return new WaitForSeconds(duration);
+        ChangeActive();
+    }
+
+    private void ChangeActive() {
         objectToEnable.SetActive(enable);
-        if (repeat) enable = !enable;
+        if (oneAndDone) gameObject.SetActive(false);
+        if (alwaysSetOpposite) enable = !enable;
     }
 
 }
