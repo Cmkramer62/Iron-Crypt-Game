@@ -6,6 +6,7 @@ public class idleTargetAI : MonoBehaviour {
     public List<Transform> targetsList = new List<Transform>();
     private int i = 0;
     public bool startRoaming, sentryVersion = false;
+    public string sentryName = "";
 
     // Start is called before the first frame update
     void Start() {
@@ -14,7 +15,7 @@ public class idleTargetAI : MonoBehaviour {
 
 
     void OnTriggerEnter(Collider other){//When enemy touches the next checkpoint
-        if (startRoaming && ((!sentryVersion && other.CompareTag("Crawler") || sentryVersion && other.CompareTag("Sentry")) )) {
+        if (startRoaming && ((!sentryVersion && other.CompareTag("Crawler") || sentryVersion && other.CompareTag("Sentry") && other.name.Equals(sentryName)) )) {
             if(i != targetsList.Count - 1) {
                 i++;
             }
