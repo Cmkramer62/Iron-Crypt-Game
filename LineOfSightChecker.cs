@@ -2,18 +2,21 @@ using UnityEngine;
 
 public class LineOfSightChecker : MonoBehaviour
 {
-    public Transform player; // Reference to the player GameObject
+    private Transform player; // Reference to the player GameObject
     public Transform monster; // Reference to the monster GameObject
     public float fieldOfViewAngle = 90f; // The field of view angle of the monster
     public int viewDistance = 20; // How far away the player can be without being seen.
 
     public bool playerInSight; // Flag to indicate if the player is in sight
 
+    public LayerMask ignoreMeLayer;
+
     private CrawlerController enemyScript;
     private bool wasHunting = false;
 
     private void Start() {
         enemyScript = GameObject.FindGameObjectWithTag("Crawler").GetComponent<CrawlerController>();
+        player = GameObject.Find("Player Two").transform;
     }
 
     /*
@@ -55,7 +58,8 @@ public class LineOfSightChecker : MonoBehaviour
         Vector3 monEyeLevel = new Vector3(monster.position.x, monster.position.y + 3, monster.position.z);
         Vector3 directionToPlayer = bob - monEyeLevel;
 
-        if (Physics.Raycast(monEyeLevel, directionToPlayer, out hit)) {
+        if (Physics.Raycast(monEyeLevel, directionToPlayer, out hit, Mathf.Infinity, ~ignoreMeLayer)) {
+            Debug.Log(hit.transform.name);
             if (hit.transform.name.Equals(targetFOV.name)) {
                 return true;
             }
@@ -70,7 +74,7 @@ public class LineOfSightChecker : MonoBehaviour
         Vector3 monEyeLevel = new Vector3(monster.position.x, monster.position.y + 3, monster.position.z);
         Vector3 directionToPlayer = bob - monEyeLevel;
 
-        if (Physics.Raycast(monEyeLevel, directionToPlayer, out hit))
+        if (Physics.Raycast(monEyeLevel, directionToPlayer, out hit, Mathf.Infinity, ~ignoreMeLayer))
         {
             if (hit.transform.name.Equals(targetFOV.name) || hit.transform.name.Equals("CabinetDoorL") || hit.transform.name.Equals("CabinetDoorR"))
             {
