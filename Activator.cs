@@ -11,6 +11,7 @@ public class Activator : MonoBehaviour {
     public bool doOnce = false;
     public float cooldown = 0f;
     public float timed = 0f; // Time delay between each subsequent activation.
+    public float initialWait = 0f;
 
     public Animator switchAnimator;
     public string animNameOn, animNameOff; // Name both same thing if only one effectee.
@@ -33,9 +34,12 @@ public class Activator : MonoBehaviour {
 
     private IEnumerator Activate(bool repeat) {
         if (ableToUse && cooldownDone) {
+            Debug.Log(gameObject.name);
+            if (doOnce) ableToUse = false;
+            if (initialWait>0) yield return new WaitForSeconds(initialWait);
             if (repeat && timerActivator) timedActivatorScript.StartTimer();
 
-            if (doOnce) ableToUse = false;
+            
             else if (cooldown > 0f) StartCoroutine(CooldownTime());
 
             if (useVFX && star.activeSelf) star.SetActive(false);
@@ -64,7 +68,7 @@ public class Activator : MonoBehaviour {
                     else listItem.GetComponent<LightFlicker>().TurnOnLight();
                 } else if (listItem.CompareTag("InteractiveObject")) { // "InteractiveObject" is the tag used specifically for Doors.
                     if (listItem.GetComponent<DoorScript>().doorState) {
-                        // close door
+                        // close door if it is open.
                         listItem.GetComponent<DoorScript>().InteractWithDoor();
                     }
                     if (listItem.GetComponent<DoorScript>().hasUnlocked) listItem.GetComponent<DoorScript>().ForceLock();

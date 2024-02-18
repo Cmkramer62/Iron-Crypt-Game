@@ -10,9 +10,10 @@ public class GateActivatorItem : MonoBehaviour {
         gateScript.CheckList();
     }
 
-   // private void OnDisable() {
+    private void OnDisable() {
         //a way to make it so that if at any point the conditions arent met, the gate
         // 's activation is reset.
-    //}
+        gateScript.CheckList();
+    }
 
 }
