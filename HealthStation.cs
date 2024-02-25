@@ -44,11 +44,13 @@ public class HealthStation : MonoBehaviour {
         forceField.SetActive(false);
         gameObject.GetComponent<AudioSource>().PlayOneShot(TwinkleClip, .2f);
         GameObject.Find("Player Two").GetComponent<HealthSystem>().RaiseLife();
+        GameObject.Find("Player Two").GetComponent<HealthSystem>().RaiseLife();
+        HelperText.PopupMessage("Health Restored.", 5);
         onCooldown = false;
     }
 
     private void OnTriggerEnter(Collider other) {
-        ActivateMachine();
+        if(other.CompareTag("Player")) ActivateMachine();
     }
 
 }
