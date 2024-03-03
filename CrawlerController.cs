@@ -7,7 +7,7 @@ public class CrawlerController : MonoBehaviour {
 
     #region General Vars
     public Transform target;
-    public GameObject player;
+    private GameObject player;
     public bool hunting = false;
     NavMeshAgent agent;
     public Animator crawlAnimator;
@@ -18,15 +18,15 @@ public class CrawlerController : MonoBehaviour {
     #endregion
 
     #region Audio Vars
-    public AudioSource chaseMusic, voiceActingSource;
-    private AudioSource footstepSource;
+    private AudioSource chaseMusic, footstepSource;
+    public AudioSource voiceActingSource;
     public AudioClip walkingClip, runningClip, jumpscareClip, breathClip;
     public AudioClip[] VoiceClips;
     public bool canPlayMusic = true;
     #endregion
 
     #region Chasing Vars
-    public bool chaseIfRunning, chaseIfSeen = false;
+    public bool chaseIfRunning, chaseIfSeen, huntAtStart = false;
     public float chaseSpeed = 33f;
     public float chaseDurationSeconds = 3f;
     #endregion
@@ -43,6 +43,10 @@ public class CrawlerController : MonoBehaviour {
         agent = GetComponent<NavMeshAgent>();
         initSpeed = agent.speed;
         footstepSource = gameObject.GetComponent<AudioSource>();
+        player = GameObject.Find("Player Two");
+        chaseMusic = GameObject.Find("Chase Music").GetComponent<AudioSource>();
+
+        if (huntAtStart) HuntPlayer();
     }
 
     void Update() {
@@ -159,6 +163,25 @@ public class CrawlerController : MonoBehaviour {
     public void BoredTimer() {
         if(temp != null) StopCoroutine(temp);
         temp = StartCoroutine(Wait());
+    }
+
+    public void AbandonAndNewTarget(Transform newTarget) {
+        AbandonHunt();
+        OverrideNewTarget(newTarget);
+        crawlAnimator.Play("Running Crawl Leave Area");
+        agent.speed = 2;
+        crawlAnimator.applyRootMotion = true;
+    }
+
+    private void AbandonHunt() {
+        chaseIfRunning = false;
+        chaseIfSeen = false;
+        ambushing = false;
+        if (hunting) StopHunt(false);
+    }
+
+    private void OverrideNewTarget(Transform newTarget) {
+        target = newTarget;
     }
 
     /*
