@@ -5,7 +5,8 @@ using UnityEngine.VFX;
 
 public class Utility : MonoBehaviour{
 
-    public AudioSource TwoDimAudioSource;
+    public AudioSource TwoDimAudioSource, HeldToolSource;
+    public DoorRaycast raycastScript;
 
     #region -------------- FLASHLIGHT VARS
 
@@ -44,15 +45,25 @@ public class Utility : MonoBehaviour{
     //public AudioClip swingCip; // Play in Two Dim?
     #endregion
 
+    #region ------------ COMM VARS
+    public AudioSource commBeepingSource;
+    public AudioClip beep2Clip;
+    private bool takingCall = false;
+    private bool awaitingPlayer = false;
+    private CommActivator tempCommScript;
+    #endregion
+
     public bool normUIEnabled = true;
     public bool allowedToUseItem = true;
 
     public GameObject player;
 
     private bool inAnimation = false;
-    // Start is called before the first frame update
-    void Start(){
-        
+
+    private UltimateCircularHealthBar circleBarsScript;
+
+    void Start() {
+        circleBarsScript = GameObject.Find("FlashCooldown").GetComponent<UltimateCircularHealthBar>();
     }
 
     // Update is called once per frame
@@ -61,28 +72,45 @@ public class Utility : MonoBehaviour{
             if (Input.GetButtonDown("FKey") && hasFlashlight && player.GetComponent<Inventory>().heldIndex == 1) {// if we are holding and can use it.
                 flashlightUsage();
             } else if (Input.GetButtonDown("FKey") && !hasFlashlight && player.GetComponent<Inventory>().heldIndex == 1) { // if we are holding flashlight but cannot use it.
-                StartCoroutine(Flicker());
+                StartCoroutine(FlashlightSparks());
             }
 
             if (Input.GetButtonDown("FKey") && player.GetComponent<Inventory>().heldIndex == 0) {//Input.GetMouseButtonDown(1)
                 cameraUsage();
             }
 
-            if (!inAnimation && Input.GetMouseButtonDown(0) && player.GetComponent<Inventory>().heldIndex == 2) { // if they are looking at it.
-                StartCoroutine(animTime(3, true));
-                wrenchAnimator.Play("WrenchCrank");
-                //TwoDimAudioSource.PlayOneShot(swingCip);
+            if (Input.GetMouseButtonDown(0) && player.GetComponent<Inventory>().heldIndex == 2) { // if they are looking at it.
+                //StartCoroutine(animTime(3, true));
+                if (raycastScript.wrenching) {
+                    wrenchAnimator.SetBool("wrenchingPlay", true);//Play("WrenchCrank");
+                    HeldToolSource.loop = true;
+                    HeldToolSource.Play();
+                } else {
+                    HelperText.PopupMessage("There's nothing to use this wrench on.", 4);
+                }
+               
+            } else if (Input.GetMouseButtonUp(0) || !raycastScript.wrenching) {
+                wrenchAnimator.SetBool("wrenchingPlay", false);
+                HeldToolSource.loop = false;
             }
 
-            if (!inAnimation && Input.GetMouseButtonDown(0) && player.GetComponent<Inventory>().heldIndex == 4) {
+            if (!inAnimation && Input.GetMouseButtonDown(0) && player.GetComponent<Inventory>().heldIndex == 3) {
                 StartCoroutine(animTime(1, false));
                 axeAnimator.Play("AxeSwing");
                 TwoDimAudioSource.PlayOneShot(swingCip);
             }
+
+            if(Input.GetMouseButtonDown(0) && player.GetComponent<Inventory>().heldIndex == 4) {
+                if (awaitingPlayer) CallActive(tempCommScript);
+                else {
+                    commBeepingSource.PlayOneShot(beep2Clip);
+                    // call the player's MCVASpeaker. Method will display random voice line. "hello? you there?" "hey!...guess he can't hear me right now" 
+                }
+            }
         }
         if (normUIEnabled && GameObject.Find("Helper Systems").GetComponent<UIController>().GameIsPaused == false && 0 <= GameObject.Find("FlashCooldown").GetComponent<UltimateCircularHealthBar>().RemovedSegments && GameObject.Find("FlashCooldown").GetComponent<UltimateCircularHealthBar>().RemovedSegments <= 13f)
         {
-            GameObject.Find("FlashCooldown").GetComponent<UltimateCircularHealthBar>().RemovedSegments -= Time.deltaTime * (10 / cameraCooldownTime) * 1.26f;
+            circleBarsScript.RemovedSegments -= Time.deltaTime * (10 / cameraCooldownTime) * 1.26f;
         }
     }
 
@@ -102,7 +130,8 @@ public class Utility : MonoBehaviour{
         }
     }
 
-    private IEnumerator Flicker(){
+    private IEnumerator FlashlightSparks(){
+        gameObject.GetComponent<MCVASpeaker>().PlayBrokenFlashlight();
         TwoDimAudioSource.PlayOneShot(flashlightBroken, Random.Range(.85f, 1.4f));
         flashlightPars.Play();
         yield return new WaitForSeconds(.05f);
@@ -117,9 +146,8 @@ public class Utility : MonoBehaviour{
 
     private void cameraUsage() {
         if (cameraCooldown == false) {
-            Debug.Log("cooldown");
             cameraCooldown = true;
-            GameObject.Find("FlashCooldown").GetComponent<UltimateCircularHealthBar>().RemovedSegments = 13f;
+            circleBarsScript.RemovedSegments = 13f;
             if (alternateMon) { GameObject.Find("Helper Systems").GetComponent<AlternateCrawl>().alternate(); }
             TwoDimAudioSource.PlayOneShot(clickSound);
             StartCoroutine(lightUp());
@@ -168,6 +196,35 @@ public class Utility : MonoBehaviour{
         }
         inAnimation = false;
     }
+
+    public void StartCommunication(CommActivator commActivator) {
+        tempCommScript = commActivator;
+        awaitingPlayer = true;
+        StartCoroutine(CallWaiting(commActivator));
+    }
+
+    private IEnumerator CallWaiting(CommActivator commActivator) {
+        commBeepingSource.Play();
+        yield return new WaitForSeconds(15f);
+        if(!takingCall) CallActive(commActivator);
+    }
+
+    private void CallActive(CommActivator commActivator) {
+        commBeepingSource.Stop();
+        commBeepingSource.PlayOneShot(beep2Clip);
+        awaitingPlayer = false;
+        takingCall = true;
+        commActivator.PlaySequencially();
+    }
+
+    //communication:
+    /*
+     * Starts beeping periodically for maybe 30 seconds. The player can get to a safe place (closet, bathroom),
+     * then scroll to it to activate the device. This will lock the player, no moving, they can look around still.
+     * This will forcefully happen at the end of the 30 seconds.
+     * Dialogue? otherwise simply play sounds. All on one gobjct with enables, each with diff initial waits. (0, 5, 14, 17, etc)
+     * when done unlock player.
+     */
 
 
 }
