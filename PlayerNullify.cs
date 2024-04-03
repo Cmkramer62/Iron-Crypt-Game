@@ -19,20 +19,40 @@ public class PlayerNullify : MonoBehaviour {
         PlayerAbilitiesSet(false);
     }
 
+    public static void SimpleHardSetAllow() {
+        SimplePlayerAbilitiesSet(true);
+    }
+
+    public static void SimpleHardSetDisallow() {
+        SimplePlayerAbilitiesSet(false);
+    }
+
     private static void PlayerAbilitiesSet(bool allow) {
         GameObject player = GameObject.Find("Player Two");
         player.GetComponent<PlayerMovement2>().allowedToMove = allow;
         player.GetComponent<Utility>().normUIEnabled = allow;
         player.GetComponent<Utility>().allowedToUseItem = allow;
         player.GetComponent<Inventory>().allowedToCycle = allow;
-        player.GetComponent<CharacterController>().enabled = allow;
+        //player.GetComponent<CharacterController>().enabled = allow; // cause problems
 
         GameObject.Find("Helper Systems").GetComponent<InventoryManager>().ableToTab = allow;
         GameObject.Find("Helper Systems").GetComponent<UIController>().canPause = allow;
         GameObject.Find("Main Camera").GetComponent<MouseLook>().allowedToLook = allow;
     }
 
+    private static void SimplePlayerAbilitiesSet(bool allow) {
+        GameObject player = GameObject.Find("Player Two");
+        player.GetComponent<PlayerMovement2>().allowedToMove = allow;
+        //player.GetComponent<CharacterController>().enabled = allow;
+        GameObject.Find("Helper Systems").GetComponent<UIController>().canPause = allow;
+        GameObject.Find("Main Camera").GetComponent<MouseLook>().allowedToLook = allow;
+    }
+
     public static void PlayerAbilitiesSetCameraException(bool allow) {
         GameObject.Find("Main Camera").GetComponent<MouseLook>().allowedToLook = allow;
+    }
+
+    public static void PlayerAbilitiesSetMovementException(bool allow) {
+        GameObject.Find("Player Two").GetComponent<PlayerMovement2>().allowedToMove = allow;
     }
 }
