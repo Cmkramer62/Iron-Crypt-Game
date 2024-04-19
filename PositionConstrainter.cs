@@ -6,16 +6,30 @@ using UnityEngine.Animations;
 public class PositionConstrainter : MonoBehaviour {
 
     public PositionConstraint constraint;
+    public bool triggerOnEnable = false;
+    public string specificObject = "";
 
-    // Start is called before the first frame update
-    void Start()
-    {
-        
+    private void Start() {
+        if (!specificObject.Equals("")) {
+            var temp = GameObject.Find(specificObject).GetComponent<PositionConstraint>();
+            if (temp != null) constraint = temp;
+        }
     }
 
-    public void OnTriggerEnter(Collider other)
-    {
-        DeactivateConstraint();
+
+    private void OnEnable() {
+        if (triggerOnEnable) {
+            if (!specificObject.Equals("")) {
+                var temp = GameObject.Find(specificObject).GetComponent<PositionConstraint>();
+                if (temp != null) constraint = temp;
+            }
+            DeactivateConstraint();
+        }
+    }
+
+
+    public void OnTriggerEnter(Collider other) {
+        if(!triggerOnEnable) DeactivateConstraint();
     }
 
     public void DeactivateConstraint() {
